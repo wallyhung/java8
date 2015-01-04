@@ -1,0 +1,47 @@
+apply plugin: 'java'
+apply plugin: 'eclipse'
+
+sourceCompatibility = 1.6
+version = '1.0'
+jar {
+    manifest {
+        attributes 'Implementation-Title': 'Gradle Quickstart', 'Implementation-Version': version
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies 
+{
+    compile('org.apache.hadoop:hadoop-common:2.5.1',
+            'org.apache.hive:hive-exec:0.13.1',
+            'org.apache.hive:hive-jdbc:0.13.1',
+            'org.apache.hive:hive-metastore:0.13.1',
+            'org.apache.hive:hive-service:0.13.1',
+            'mysql:mysql-connector-java:5.1.34',
+         //   'commons-dbcp:commons-dbcp:1.4',
+            'org.mongodb:mongo-java-driver:2.11.4',
+            'com.fasterxml.jackson.core:jackson-core:2.3.3',
+            'com.fasterxml.jackson.core:jackson-databind:2.3.3',
+            'com.fasterxml.jackson.core:jackson-annotations:2.3.3',
+            'org.slf4j:slf4j-api:1.7.7',
+            'ch.qos.logback:logback-core:1.1.2',
+            'ch.qos.logback:logback-classic:1.1.2',
+            'com.github.javafaker:javafaker:0.5')
+    compile files('libs/qrcode.jar')
+    testCompile('junit:junit:4.11')
+}
+
+test {
+    systemProperties 'property': 'value'
+}
+
+uploadArchives {
+    repositories {
+       flatDir {
+           dirs 'repos'
+       }
+    }
+}
