@@ -102,7 +102,7 @@ public class SpotStatistic extends StatisticServiceImpl {
 			sqlBuilder.append("'");
 		}
 		
-	    logger.info("sql:{}",sqlBuilder.toString());
+//	    logger.info("sql:{}",sqlBuilder.toString());
 		ResultSet resultSet = statement.executeQuery(sqlBuilder.toString());
 		List<String> imeis = new ArrayList<String>();
 		while (resultSet.next()) {

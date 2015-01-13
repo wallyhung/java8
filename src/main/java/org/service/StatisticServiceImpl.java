@@ -92,6 +92,28 @@ public abstract class StatisticServiceImpl  implements StatisticService{
 		return list;
 	}
 	
+	public List<String> getNewUsers(String day, int devid, int flag, String tbName) throws SQLException {
+		//获取连接
+		Connection conn = hiveJDBC.getConnection();
+		Statement statement = conn.createStatement();
+		
+		StringBuilder sqlBuilder = new StringBuilder();
+		sqlBuilder.setLength(0);
+		sqlBuilder.append("select distinct(t.imei) from ").append(tbName).append(" t where t.day = '").append(day).append("'");
+		if(devid != 0) sqlBuilder.append(" and t.devid = ").append(devid).append(" ");
+		if(flag != 0)
+		{
+			sqlBuilder.append(" and t.flag = ").append(flag).append(" ");
+		}
+//		logger.info("sql:{}",sqlBuilder.toString());
+		ResultSet resultSet = statement.executeQuery(sqlBuilder.toString());
+		List<String> list = new ArrayList<String>();
+		while (resultSet.next()) {
+			list.add(resultSet.getString(1));
+         }
+		return list;
+	}
+	
 	@Override
 	public int getNewUsersCount(String day, String devid, int flag, String tbName) throws SQLException {
 		//获取连接

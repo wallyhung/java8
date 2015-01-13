@@ -171,22 +171,24 @@ public class Statistic {
 //		List<String>  keys = pushStatistic.getSlotNameFromMysql(devid);
 //		String[] keys = {"3f90b77c8ce74040b4658f36626bdde1"};
 		
-		List<String>  keys = getRealSlotNamesByDevidFromHive(devid, day, Constant.TABLE_PUSH);
-		int length = keys.size();
-		logger.info("devid：{}，日期：{}，推送实际应用个数：{}",devid,day,length);
-		int i = 0;
-		DecimalFormat df = new DecimalFormat("0.0%");
-		for (String key : keys) {
-			logger.info("现在采集推送新增用户的应用是：{}",key);
-			logger.info("采集进度：{},还剩下{}个应用需要采集....",df.format((float)i/length),length-i);
-			pushStatistic.getNewUserIntoHive(day, key, devMap.get(key),Constant.NEW_USER_SEVEN);
-			i++;
-		}
-		logger.info("采集进度：{}....",df.format((float)i/length));
+//		List<String>  keys = getRealSlotNamesByDevidFromHive(devid, day, Constant.TABLE_PUSH);
+//		int length = keys.size();
+//		logger.info("devid：{}，日期：{}，推送实际应用个数：{}",devid,day,length);
+//		int i = 0;
+//		DecimalFormat df = new DecimalFormat("0.0%");
+//		for (String key : keys) {
+//			logger.info("现在采集推送新增用户的应用是：{}",key);
+//			logger.info("采集进度：{},还剩下{}个应用需要采集....",df.format((float)i/length),length-i);
+//			pushStatistic.getNewUserIntoHive(day, key, devMap.get(key),Constant.NEW_USER_SEVEN);
+//			i++;
+//		}
+//		logger.info("采集进度：{}....",df.format((float)i/length));
 		
 		//获取用户
 		List<String> pushImeis = pushStatistic.getNewUsers(day, devid, Constant.FLAG_PUSH, Constant.TABLE_USER_SEVEN);
-		List<String> newPushImeis = pushStatistic.getNewUsers(day, devid, Constant.FLAG_SPOT, Constant.TABLE_NEW_PUSH_USER_SEVEN);
+//		List<String> newPushImeis = pushStatistic.getNewUsers(day, Integer.parseInt(devid), Constant.FLAG_SPOT, Constant.TABLE_NEW_PUSH_USER_SEVEN);
+		
+		List<String> newPushImeis = pc.parseToList("d:/compare/day/new_newuser_39_20150111.txt");
 		
 		logger.info("devid：{}，老平台7天新增用户：{}",devid,pushImeis.size());
 		logger.info("devid：{}，新平台7天新增用户：{}",devid,newPushImeis.size());
@@ -236,7 +238,6 @@ public class Statistic {
 	 * @param day
 	 * @throws SQLException
 	 */
-	@SuppressWarnings("static-access")
 	public void tempAllDevidTask(String devid,String day) throws SQLException
 	{
 		//获取老平台的新增用户
@@ -423,6 +424,7 @@ public class Statistic {
 	}
 	
 	
+	@SuppressWarnings("static-access")
 	public void getThirtyAllRemainUserByDevid(String devid,String day) throws SQLException
 	{
 		//获取老平台的留存用户
@@ -487,15 +489,14 @@ public class Statistic {
 //		System.out.println(TimeUtil.getLastDayString());
 //		statistic.doBaseNewUserData(TimeUtil.getLastDayString());
 		
-//		statistic.tempTask("6", "20141222");
-//		statistic.tempTask("6", "20141223");
-//		statistic.tempTask("6", "20141224");
-//		statistic.tempTask("6", "20141225");
-//		statistic.tempTask("6", "20141226");
-//		statistic.tempTask("6", "20141227");
-//		statistic.tempTask("6", "20141228");
-//		statistic.tempTask("6", "20141229");
-		statistic.tempTask("6", "20141230");
+//		statistic.tempTask("6", "20150101");
+//		statistic.tempTask("6", "20150102");
+//		statistic.tempTask("6", "20150103");
+//		statistic.tempTask("6", "20150104");
+//		statistic.tempTask("6", "20150105");
+//		statistic.tempTask("6", "20150106");
+//		statistic.tempTask("6", "20150107");
+//		statistic.tempTask("6", "20150108");
 		
 		
 //		statistic.getAllRemainUserByDevid("10000", "20141216");
@@ -506,6 +507,10 @@ public class Statistic {
 //		statistic.getAllRemainUserByDevid("10000", "20141221");
 //		statistic.getAllRemainUserByDevid("10000", "20141222");
 //		statistic.getAllRemainUserByDevid("10000", "20141223");
+		
+		
+//		statistic.getSevenNewUserForAllPushPlatform("39", "20141220");
+		statistic.getSevenNewUserForAllPushPlatform("39", "20150111");
 		
 		PushStatistic push = new PushStatistic();
 //		System.out.println("20141222all：" + push.getNewUsersCount("20141222", "6",0,Constant.TABLE_USER));

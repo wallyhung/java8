@@ -17,6 +17,7 @@ import java.util.Map;
 import org.hive.Connection;
 import org.service.NewPushStatistic;
 import org.service.PushStatistic;
+import org.service.SpotStatistic;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.util.CompareUtil;
@@ -418,6 +419,8 @@ public class PnameCompare {
 			}
 		}
 		
+		
+		
 		public static void getAllPushPlatformRemain(String day,String devid) throws SQLException
 		{
 			
@@ -446,6 +449,35 @@ public class PnameCompare {
 				}
 				System.out.println("日期：" + newday + "，当天的留存用户数：" + map.size() + "；" + day + "的新增遗留用户数：" + i++);
 			}
+		}
+		
+		
+		public static void getAllNewUserBySlotName(String day,String slotName) throws SQLException
+		{
+			
+			PushStatistic push = new PushStatistic();
+			List<String> pushImeis = push.getNewUsers(day, slotName, Constant.NEW_USER_SEVEN);
+			logger.info("日期：{}，slot_name：{}，老推送平台新增用户数：{}",day,slotName,pushImeis.size());
+			
+			SpotStatistic spotStatistic = new SpotStatistic();
+			List<String> spotImeis = spotStatistic.getNewUsers(day, slotName, Constant.NEW_USER_SEVEN);
+			logger.info("日期：{}，slot_name：{}，插屏平台新增用户数：{}",day,slotName,spotImeis.size());
+			
+			NewPushStatistic newpush = new NewPushStatistic();
+			List<String> newpushImeis = newpush.getNewUsers(day, slotName, Constant.NEW_USER_SEVEN);
+			logger.info("日期：{}，slot_name：{}，新推送平台新增用户数：{}",day,slotName,newpushImeis.size());
+			
+			for (String imei : pushImeis) {
+				if(!newpushImeis.contains(imei)) newpushImeis.add(imei);
+			}
+			
+			logger.info("日期：{}，slot_name：{}，整个推送平台新增用户数：{}",day,slotName,newpushImeis.size());
+			
+			for (String imei : spotImeis) {
+				if(!newpushImeis.contains(imei)) newpushImeis.add(imei);
+			}
+			
+			logger.info("日期：{}，slot_name：{}，新增用户数：{}",day,slotName,newpushImeis.size());
 		}
 		
 		
@@ -514,7 +546,56 @@ public class PnameCompare {
 		}
 		
 		
+		public static void getAllPushRemain(String day) throws SQLException
+		{
+			writeRemainData(day);
+			writeNewPlatformRemainData(day);
+			
+			//做留存用户
+			Map<String, Integer> oldImeis = parseToMap("remain_" + day);
+			Map<String, Integer> newImeis = parseToMap("new_remain_" + day);
+			
+			logger.info("日期：{}，老推送平台留存：{}",day,oldImeis.size());
+			logger.info("日期：{}，新推送平台留存：{}",day,newImeis.size());
+			
+			for(Map.Entry<String, Integer> entry:oldImeis.entrySet())
+			{
+				if(!newImeis.containsKey(entry.getKey()))
+				{
+					newImeis.put(entry.getKey(), 1);
+				}
+			}
+			FileUtil.generate(newImeis, "all_remain_" + day);
+			logger.info("日期：{}，全推送平台留存：{}",day,newImeis.size());
+		}		
 		
+		public static void getAllPushNew(String day) throws SQLException
+		{
+			PushStatistic statistic = new PushStatistic();
+			List<String> oldImeis = statistic.getNewUsers(day, null, Constant.NEW_USER_SEVEN);
+			FileUtil.generate(oldImeis, "newuser_" + day);
+			
+			NewPushStatistic newStatistic = new NewPushStatistic();
+			List<String> newImeis = newStatistic.getNewUsers(day, null, Constant.NEW_USER_SEVEN);
+			FileUtil.generate(newImeis, "new_newuser_" + day);
+			
+			//做新增用户
+			Map<String, Integer> oldImeisMap = parseToMap("newuser_" + day);
+			Map<String, Integer> newImeisMap = parseToMap("new_newuser_" + day);
+			
+			logger.info("日期：{}，老推送平台新增：{}",day,oldImeis.size());
+			logger.info("日期：{}，新推送平台新增：{}",day,newImeis.size());
+			
+			for(Map.Entry<String, Integer> entry:oldImeisMap.entrySet())
+			{
+				if(!newImeisMap.containsKey(entry.getKey()))
+				{
+					newImeisMap.put(entry.getKey(), 1);
+				}
+			}
+			FileUtil.generate(newImeisMap, "all_newuser_" + day);
+			logger.info("日期：{}，全推送平台新增：{}",day,newImeisMap.size());
+		}		
 		
 		
 		public static void compare(String day) throws SQLException
@@ -536,6 +617,22 @@ public class PnameCompare {
 			logger.info("日期：{}，重复用户：{}",day,i);
 		}
 		
+		
+		public static void compare() throws SQLException
+		{
+			Map<String, Integer> imeis = parseToMap("oTreat_imeis");
+			Map<String, Integer> newImeis = parseToMap("dex_imei_outspot_20150106");
+			
+			int i = 0;
+			for(Map.Entry<String, Integer> entry : imeis.entrySet()) 
+			{
+				if(newImeis.containsKey(entry.getKey())) i++;
+			}
+			
+			logger.info("老平台留存用户：{}",imeis.size());
+			logger.info("新平台留存用户：{}",newImeis.size());
+			logger.info("重复用户：{}",i);
+		}
 		
 		
 		
@@ -571,49 +668,24 @@ public class PnameCompare {
 //			getSameUnique();
 //			getData("20141201");
 //			comparePushAndSpot();
-//			getRemain("20140918");
-//			getRemain("20140919");
-//			getRemain("20140920");
-//			getRemain("20140921");
-//			getRemain("20140922");
-//			getRemain("20140923");
-//			getRemain("20141016");
-//			getRemain("20141017");
-//			getRemain("20141018");
-//			getRemain("20141019");
-//			getRemain("20141020");
-//			getRemain("20141021");
-//			getRemain("20141119");
-//			getRemain("20141120");
-//			getRemain("20141121");
-//			getRemain("20141122");
-//			getRemain("20141123");
-//			getRemain("20141124");
 //			getRemain("20141125");
 			
-//			getNewPushPlatformRemain("20141119");
-//			getNewPushPlatformRemain("20141120");
-//			getNewPushPlatformRemain("20141121");
-//			getNewPushPlatformRemain("20141122");
-//			getNewPushPlatformRemain("20141123");
-//			getNewPushPlatformRemain("20141124");
 //			getNewPushPlatformRemain("20141125");
 			
 //			getSpotRemain("20141230");
 //			getSpotNewUsers("20141230");
-			getAllPushNewUsers("20141230");
+//			getAllPushNewUsers("20141230");
 			
 			
-//			getAllPushPlatformRemain("20141216","10000");
-//			getAllPushPlatformRemain("20141217","10000");
-//			getAllPushPlatformRemain("20141218","10000");
-//			getAllPushPlatformRemain("20141219","10000");
-//			getAllPushPlatformRemain("20141220","10000");
-//			getAllPushPlatformRemain("20141221","10000");
-//			getAllPushPlatformRemain("20141222","10000");
+//			getAllNewUserBySlotName("20150103", "2c40186da2454aec925688a5c6e01890");
+			
+			
 //			getAllPushPlatformRemain("20141223","10000");
 			
-//			compare("20141225");
+//			compare();
+			
+			getAllPushRemain("20150112");
+//			getAllPushNew("20150107");
 			
 //			System.out.println(parseDay("20141215"));
 		}
