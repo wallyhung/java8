@@ -11,6 +11,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import org.pojo.ClientMessage;
@@ -141,13 +142,34 @@ public class Test {
 //		System.out.println(streetAddress);
 		
 //		List<ClientMessage> s = parse("C:/Users/Administrator/Desktop/hadoopdata/mysql_data.log_20141202095443");
-		List<ClientMessage> s = parse("C:/Users/Administrator/Desktop/hadoopdata/mysql_data.log_20141017032206");
-		System.out.println(s.size());
-		for (ClientMessage clientMessage : s) {
-			System.out.println(clientMessage.getApp_name() + ":" + clientMessage.getImei());
+//		List<ClientMessage> s = parse("C:/Users/Administrator/Desktop/hadoopdata/mysql_data.log_20141017032206");
+//		System.out.println(s.size());
+//		for (ClientMessage clientMessage : s) {
+//			System.out.println(clientMessage.getApp_name() + ":" + clientMessage.getImei());
+//		}
+//		
+//		generate(s, "无二无任务而4飞");
+		
+//		String ss = "23424||sdsd";
+//		String[] ts = ss.split("\\|\\|");
+//		System.out.println(ts[1]);
+		
+		List<String> list = new ArrayList<String>();
+		list.add("asd");
+		list.add("wqeqw");
+		list.add("vbn");
+		
+		for (int i = 0; i < 10; i++) {
+			
+			Collections.shuffle(list);
+			for (String string : list) {
+				System.out.println(string);
+			}
+			System.out.println("----------------------");
 		}
 		
-		generate(s, "无二无任务而4飞");
+		
+		
 	}
 	
 	

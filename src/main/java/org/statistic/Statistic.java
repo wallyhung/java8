@@ -90,7 +90,7 @@ public class Statistic {
 	
 	public List<String> getPname(String day, String devid) throws SQLException {
 		List<String> res = new ArrayList<String>();
-		List<String>  keys = pushStatistic.getSlotNameFromMysql(devid);
+		List<String>  keys = getRealSlotNamesByDevidFromHive(devid, day, Constant.TABLE_NEW_PUSH);
 		System.out.println("应用个数：" + keys.size());
 		
 		int i = 0;

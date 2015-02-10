@@ -7,6 +7,7 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.pojo.Imei;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.statistic.HiveJDBC;
@@ -46,9 +47,49 @@ public class NewPushStatistic extends StatisticServiceImpl {
 	}
 	
 	@Override
-	public List<String> getPnameBySlotName(String day, String slotName)
+	public List<String> getPnameBySlotName(String day, String devid)
 			throws SQLException {
-		return null;
+		//获取连接
+		Connection conn = hiveJDBC.getConnection();
+		Statement statement = conn.createStatement();
+		
+		StringBuilder sqlBuilder = new StringBuilder();
+		sqlBuilder.setLength(0);
+		
+		sqlBuilder.append("select distinct(t.clientMessage.pname) from ");
+		sqlBuilder.append(Constant.TABLE_NEW_PUSH);
+		sqlBuilder.append(" t where t.day = '");
+		sqlBuilder.append(day);
+		sqlBuilder.append("' and t.rtype = 1 and t.app.devid = ");
+		sqlBuilder.append(devid);
+		
+		ResultSet resultSet = statement.executeQuery(sqlBuilder.toString());
+		List<String> pnames = new ArrayList<String>();
+		while (resultSet.next()) {
+			pnames.add(resultSet.getString(1));
+         }
+		return pnames;
+	}
+	
+	public List<String> getImeis(String day) throws SQLException 
+	{
+		//获取连接
+		Connection conn = hiveJDBC.getConnection();
+		Statement statement = conn.createStatement();
+		
+		StringBuilder sqlBuilder = new StringBuilder();
+		sqlBuilder.setLength(0);
+		
+		sqlBuilder.append("select distinct(t.clientMessage.imei) from biglog t where t.day = '");
+		sqlBuilder.append(day);
+		sqlBuilder.append("' and t.rtype = 8 and t.app.devid = 39 and t.result = 'vaildArea'");
+		
+		ResultSet resultSet = statement.executeQuery(sqlBuilder.toString());
+		List<String> imeis = new ArrayList<String>();
+		while (resultSet.next()) {
+			imeis.add(resultSet.getString(1));
+         }
+		return imeis;
 	}
 	
 	
@@ -154,6 +195,35 @@ public class NewPushStatistic extends StatisticServiceImpl {
          }
 		return imeis;
 	}
+	
+	
+	
+	public List<Imei> getNewPlatformRemainUser(String day) throws SQLException {
+		//获取连接
+		Connection conn = hiveJDBC.getConnection();
+		Statement statement = conn.createStatement();
+		
+		StringBuilder sqlBuilder = new StringBuilder();
+		sqlBuilder.setLength(0);
+		
+		sqlBuilder.append("select t.clientMessage.imei,min(t.clientMessage.timestamp) from ");
+		sqlBuilder.append(Constant.TABLE_NEW_PUSH);
+		sqlBuilder.append(" t where t.day = '");
+		sqlBuilder.append(day);
+		sqlBuilder.append("' and t.rtype = 1 group by t.clientMessage.imei");
+		System.out.println(sqlBuilder.toString());
+		
+//		logger.info("sql:{}",sqlBuilder.toString());
+		ResultSet resultSet = statement.executeQuery(sqlBuilder.toString());
+		List<Imei> imeis = new ArrayList<Imei>();
+		while (resultSet.next()) {
+			String imei = resultSet.getString(1);
+			long time = resultSet.getLong(2);
+			imeis.add(new Imei(imei, time));
+         }
+		return imeis;
+	}
+	
 	
 	public List<String> getNewPlatformRemainUserByDevid(String day, String devid) throws SQLException {
 		//获取连接

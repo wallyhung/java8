@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.hive.Connection;
+import org.pojo.Imei;
 import org.service.NewPushStatistic;
 import org.service.PushStatistic;
 import org.service.SpotStatistic;
@@ -30,6 +31,7 @@ import com.mongodb.DBCollection;
 import com.mongodb.DBCursor;
 import com.mongodb.DBObject;
 import com.mongodb.MapReduceOutput;
+import com.mysql.jdbc.StringUtils;
 
 
 /**
@@ -139,6 +141,54 @@ public class PnameCompare {
 			return map;
 		}
 		
+		
+		public static Map<String, Long> parseToImeiMap(String path,Map<String, Long> map)
+		{
+			//进入读文件阶段
+			InputStreamReader in = null;
+			try 
+			{
+				in = new InputStreamReader(new FileInputStream(new File("d:/compare/day/" + path + ".txt")), "UTF-8");
+				BufferedReader br = new BufferedReader(in);
+				String currentJsonStr= null;
+				String res = null;
+				try {
+					//按行读取
+					while((currentJsonStr = br.readLine()) != null){
+						if(!currentJsonStr.trim().equals("")){
+							res = currentJsonStr.trim();
+							String[] ss = res.split("\\|\\|");
+							if(!StringUtils.isNullOrEmpty(ss[0])) map.put(ss[0], Long.parseLong(ss[1]));
+						}
+					}
+				} catch (IOException e) {
+					logger.error(e.getMessage());
+				}
+				finally{
+					if (br != null) {
+		                try {
+		                    br.close();
+		                } catch (IOException e1) {
+		                	logger.error("关闭读取文件的缓冲流出错：{}。",e1.getMessage());
+		                }
+		            }
+					if (in != null) {
+		                try {
+		                    in.close();
+		                } catch (IOException e2) {
+		                	logger.error("关闭读取文件的缓冲流出错：{}。",e2.getMessage());
+		                }
+		            }
+				}
+			} catch (FileNotFoundException e) {
+				logger.error(e.getMessage());
+			} catch (UnsupportedEncodingException e3) {
+				logger.error(e3.getMessage());
+			} 
+			return map;
+		}
+		
+		
 		public static List<String> parseToList(String path)
 		{
 			List<String> list = new ArrayList<String>();
@@ -187,6 +237,12 @@ public class PnameCompare {
 		}
 		
 		
+		/**
+		 * 查询插屏平台的包名
+		 * @param day
+		 * @param slotName
+		 * @return
+		 */
 		@SuppressWarnings("unchecked")
 		public static List<String> getSpotPname(String day,String slotName)
 		{
@@ -198,21 +254,46 @@ public class PnameCompare {
 		}
 		
 		
+		
+		/**
+		 * 查询插屏包名的用户数
+		 * @param day
+		 * @param pname
+		 * @param rtype
+		 * @return
+		 */
 		public static int getSpotData(String day,String pname,int rtype)
 		{
 			DBCollection coll = conn.getCollection("biglog", "log_" + day);
 			BasicDBObject query = new BasicDBObject();
 			query.append("rtype", rtype);
-			query.append("feedback.pname", pname);
-			return coll.distinct("feedback.imei", query).size();
+//			query.append("feedback.pname", pname);
+			query.append("clientMessage.pname", pname);
+			query.append("clientMessage.slot_name", "45dd279943c3452a865a85f91f72df6a");
+//			return coll.distinct("feedback.imei", query).size();
+			return coll.distinct("clientMessage.imei", query).size();
 		}
 		
+		public static void getCount(String day)
+		{
+			String[] pnames = {"com.morega.ldsg" , "com.call.glint" , "com.ylj.glint" , "com.morega.wifiup" , "com.morega.dxsgd" , "com.morega.dxsg" , "com.morega.dxsgtx","com.morega.wifipass" , "com.morega.wxpass"};
+			for (String string : pnames) {
+				logger.info("日期：{}，包名：{}，终端数：{}。",day,string,getSpotData(day, string, 1));
+			}
+		}
 		
+		/**
+		 * 根据开发者账号查询插屏包名
+		 * @param day
+		 * @param devid
+		 * @return
+		 * @throws SQLException
+		 */
 		public static List<String> getPname(String day, String devid) throws SQLException {
-			PushStatistic pushStatistic = new PushStatistic();
+			Statistic statistic = new Statistic();
 			List<String> res = new ArrayList<String>();
 			
-			List<String>  keys = pushStatistic.getSlotNameFromMysql(devid);
+			List<String>  keys = statistic.getRealSlotNamesByDevidFromHive(devid, day, Constant.TABLE_SPOT_USER_SEVEN);
 			System.out.println("应用个数：" + keys.size());
 			
 			int i = 0;
@@ -225,7 +306,46 @@ public class PnameCompare {
 				res.addAll(pnames);
 				i++;
 			}
+			FileUtil.generate(res, "pname_spot_" + devid + "_" + day);
 			return res;
+		}
+		
+		public static List<String> gePushPname(String day, String devid) throws SQLException {
+			NewPushStatistic statistic = new NewPushStatistic();
+			List<String> res = statistic.getPnameBySlotName(day, devid);
+			FileUtil.generate(res, "pname_push_" + devid + "_" + day);
+			return res;
+		}
+		
+		
+		/**
+		 * 根据包名查询请求数
+		 * @param day
+		 * @param pname
+		 * @throws SQLException
+		 */
+		public static void getSpotRequestCount(String day) throws SQLException {
+			String[] pnames = {"com.ecapyddsadsewcsx.onfdssfewafew","com.arbdios.tndfewwdedaedffdfs"};
+//			List<String> pnames = getPname(day, devid);
+			DBCollection coll = conn.getCollection("biglog", "log_" + day);
+			for (String string : pnames) {
+				BasicDBObject query = new BasicDBObject();
+				query.append("rtype", 1);
+				query.append("clientMessage.pname", string);
+				logger.info("日期：{}。插屏包名是：{}。请求数：{}",day,string,coll.count(query));
+			}
+		}
+		
+		public static void getSpotRequestCount(String day, String devid) throws SQLException {
+//			String[] pnames = {"com.morega.ldsg","com.morega.dxsgd","com.morega.wxpass","com.ylj.glint","com.fantasticdroid.flashaler","com.lt.lighting","com.morega.wifipass","com.morega.dxsgtx","com.morega.wifiup","com.morega.ldsgs","com.morega.wifibest","com.morega.dxsg","com.call.glint"};
+			List<String> pnames = getPname(day, devid);
+			DBCollection coll = conn.getCollection("biglog", "log_" + day);
+			for (String string : pnames) {
+				BasicDBObject query = new BasicDBObject();
+				query.append("rtype", 1);
+				query.append("clientMessage.pname", string);
+				logger.info("日期：{}。插屏包名是：{}。请求数：{}",day,string,coll.count(query));
+			}
 		}
 		
 		
@@ -357,6 +477,40 @@ public class PnameCompare {
 				FileUtil.generate(arrs, "new_remain_" + day);
 			}
 		}
+		
+		
+		private static void writeNewPlatformImeisData(String day) throws SQLException
+		{
+			if(!FileUtil.hasFile("new_deny_39_" + day))
+			{
+				NewPushStatistic statistic = new NewPushStatistic();
+				List<String> arrs = statistic.getImeis(day);
+				FileUtil.generate(arrs, "new_deny_39_" + day);
+			}
+		}
+		
+		private static void writeNewPlatformImeisAndTimeData(String day) throws SQLException
+		{
+			if(!FileUtil.hasFile("new_remain_time_" + day))
+			{
+				NewPushStatistic statistic = new NewPushStatistic();
+				List<Imei> arrs = statistic.getNewPlatformRemainUser(day);
+				FileUtil.generateTxt(arrs, "new_remain_time_" + day);
+			}
+		}
+		
+		
+		private static void writeNewImeisAndTimeFromSpotData(String day) throws SQLException
+		{
+			if(!FileUtil.hasFile("new_imeis_time_spot_" + day))
+			{
+				SpotStatistic statistic = new SpotStatistic();
+				List<Imei> arrs = statistic.getNewUsers(day);
+				FileUtil.generateTxt(arrs, "new_imeis_time_spot_" + day);
+			}
+		}
+		
+		
 		
 		public static void getRemain(String day) throws SQLException
 		{
@@ -620,18 +774,19 @@ public class PnameCompare {
 		
 		public static void compare() throws SQLException
 		{
-			Map<String, Integer> imeis = parseToMap("oTreat_imeis");
-			Map<String, Integer> newImeis = parseToMap("dex_imei_outspot_20150106");
+			Map<String, Integer> imeis = parseToMap("remain_39_imei_20150121");
+			Map<String, Integer> newImeis = parseToMap("20150108_20150115_deny_39_");
+			
+			logger.info("留存用户：{}",imeis.size());
+			logger.info("屏蔽用户：{}",newImeis.size());
 			
 			int i = 0;
-			for(Map.Entry<String, Integer> entry : imeis.entrySet()) 
+			for(Map.Entry<String, Integer> entry : newImeis.entrySet()) 
 			{
-				if(newImeis.containsKey(entry.getKey())) i++;
+				if(imeis.containsKey(entry.getKey())) i++;
 			}
-			
-			logger.info("老平台留存用户：{}",imeis.size());
-			logger.info("新平台留存用户：{}",newImeis.size());
-			logger.info("重复用户：{}",i);
+//			FileUtil.generate(newImeis, "20150119_all_dex");
+			logger.info("更新用户：{}",i);
 		}
 		
 		
@@ -657,6 +812,56 @@ public class PnameCompare {
 			}
 		}
 		
+		/**
+		 * 获取一段时间内的每日留存
+		 * @param newDay
+		 * @param oldDay
+		 * @throws SQLException
+		 */
+		public static void getSomeDaysRemain(String newDay,String oldDay) throws SQLException
+		{
+			List<String> days = TimeUtil.getDistanceTimeDayArray(newDay, oldDay);
+			
+//			for (String day : days) {
+//				writeNewPlatformRemainData(day);
+////				writeNewPlatformImeisAndTimeData(day);
+//				Map<String,Integer> ss = parseToMap("new_remain_" + day);
+//				logger.debug("日期：{}的留存数据：" + ss.size());
+//			}
+			
+			for (int j = days.size() -1; j > 0; j--) {
+				writeNewPlatformRemainData(days.get(j));
+//				writeNewPlatformImeisAndTimeData(day);
+				Map<String,Integer> ss = parseToMap("new_remain_" + days.get(j));
+				logger.debug("日期：{}的留存数据：" + ss.size());
+			}
+			
+			//将所有的数据都暂存在map中去重
+//			Map<String, Long> map = new HashMap<String, Long>();
+//			for (String day : days) {
+//				map = parseToImeiMap("new_remain_time_" + day, map);
+//			}
+//			logger.debug("日期：{}---{}的留存数据：" + map.size());
+//			FileUtil.generateTxt(map, oldDay + "_" + newDay + "_remain_time_");
+		}
+		
+		
+		public static void getSomeDaysImeis(String newDay,String oldDay) throws SQLException
+		{
+			List<String> days = TimeUtil.getDistanceTimeDayArray(newDay, oldDay);
+			
+			for (String day : days) {
+				writeNewPlatformImeisData(day);
+			}
+			
+			//将所有的数据都暂存在map中去重
+			Map<String, Integer> map = new HashMap<String, Integer>();
+			for (String day : days) {
+				map = parseToMap("new_deny_39_" + day, map);
+			}
+			logger.debug("日期：{}---{}的屏蔽数据：" + map.size());
+			FileUtil.generate(map, oldDay + "_" + newDay + "_deny_39_");
+		}
 		
 		
 		
@@ -678,14 +883,37 @@ public class PnameCompare {
 			
 			
 //			getAllNewUserBySlotName("20150103", "2c40186da2454aec925688a5c6e01890");
-			
-			
 //			getAllPushPlatformRemain("20141223","10000");
 			
 //			compare();
+//			getPname("20150118", "59");
+//			getSpotRequestCount("20150120", "59");
+//			getSpotRequestCount("20150124");
 			
-			getAllPushRemain("20150112");
+//			getSomeDaysRemain("20150120", "20141220");
+			
+//			getPname("20150124", "6");
+//			gePushPname("20150124", "6");
+			
+//			getPname("20150125", "6");
+//			gePushPname("20150125", "6");
+			
+//			getAllPushRemain("20150114");
+//			writeNewPlatformRemainData("20141228");
 //			getAllPushNew("20150107");
+			
+//			getSomeDaysImeis("20150115", "20150108");
+//			getSomeDaysRemain("20150116", "20141217");
+			
+//			writeNewImeisAndTimeFromSpotData("20150201");
+			
+//			System.out.println("952a723f75af46308506dc54d6584a26: " + getSpotPname("20150201", "952a723f75af46308506dc54d6584a26"));
+//			System.out.println("c397fc1ca840462ea0c634af094d4a94: " + getSpotPname("20150201", "c397fc1ca840462ea0c634af094d4a94"));
+//			System.out.println("c97475851a184a5c89f423bea28c977a: " + getSpotPname("20150201", "c97475851a184a5c89f423bea28c977a"));
+//			System.out.println("e197a95d9e2140b4ad2e67e98ce6413c: " + getSpotPname("20150201", "e197a95d9e2140b4ad2e67e98ce6413c"));
+//			System.out.println("b747fa48a8504a9c9593027f657796c6: " + getSpotPname("20150201", "b747fa48a8504a9c9593027f657796c6"));
+			
+			getCount("20150201");
 			
 //			System.out.println(parseDay("20141215"));
 		}
@@ -759,6 +987,9 @@ public class PnameCompare {
 	        query.append("fid", slotName);
 	        return coll.distinct("value", query);
 		}
+		
+		
+		
 		
 		public static String parseDay(String day)
 		{

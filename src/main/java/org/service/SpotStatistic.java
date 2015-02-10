@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import org.pojo.Imei;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.statistic.HiveJDBC;
@@ -138,6 +139,36 @@ public class SpotStatistic extends StatisticServiceImpl {
 //		logger.info("sql:{}",sqlBuilder.toString());
 		statement.execute(sqlBuilder.toString());
 	}
+	
+	
+	public List<Imei> getNewUsers(String day) throws SQLException {
+		//获取连接
+		Connection conn = hiveJDBC.getConnection();
+		Statement statement = conn.createStatement();
+		
+		StringBuilder sqlBuilder = new StringBuilder();
+		sqlBuilder.setLength(0);
+		
+		sqlBuilder.append("select t.imei,min(t.day) from ");
+		sqlBuilder.append(Constant.TABLE_SPOT_USER_SEVEN);
+		sqlBuilder.append(" t where t.day between '");
+		sqlBuilder.append(TimeUtil.getThirthDaysBefore(TimeUtil.getDayFromDayStringNon(day)));
+		sqlBuilder.append("' and '");
+		sqlBuilder.append(day);
+		sqlBuilder.append("' group by t.imei");
+		System.out.println(sqlBuilder.toString());
+		
+		logger.info("sql:{}",sqlBuilder.toString());
+		ResultSet resultSet = statement.executeQuery(sqlBuilder.toString());
+		List<Imei> imeis = new ArrayList<Imei>();
+		while (resultSet.next()) {
+			String imei = resultSet.getString(1);
+			String time = resultSet.getString(2);
+			imeis.add(new Imei(imei, time));
+         }
+		return imeis;
+	}
+	
 	
 	@Override
 	public List<String> getRemainUser(String day, String slotName)

@@ -8,6 +8,8 @@ import java.io.OutputStreamWriter;
 import java.util.List;
 import java.util.Map;
 
+import org.pojo.Imei;
+
 public class FileUtil {
 	
 	public static void generate(List<String> arrs,String filename)
@@ -22,6 +24,64 @@ public class FileUtil {
 			bw = new BufferedWriter(new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), "UTF-8")));
 			for(String arr : arrs){
 	            bw.write(arr + "\t\n");
+	        }
+//			for(Map.Entry<String, Integer> entry:Vmap.entrySet()){
+//				bw.write(entry.getKey()+"\t\n");
+//			}
+            bw.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }finally
+        {
+        	try {
+				bw.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+        }
+	}
+	
+	public static void generateTxt(List<Imei> arrs,String filename)
+	{
+//		FileWriter fw = null;
+		BufferedWriter bw = null;
+		try {
+			File file = new File("d:/compare/day/" + filename + ".txt");
+			if(file.exists()) file.delete();
+//			fw = new FileWriter(new File(path));
+//			BufferedWriter bw = new BufferedWriter(fw);
+			bw = new BufferedWriter(new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), "UTF-8")));
+			for(Imei arr : arrs){
+	            bw.write(arr.getImei() + "||" + arr.getDay() + "\t\n");
+	        }
+//			for(Map.Entry<String, Integer> entry:Vmap.entrySet()){
+//				bw.write(entry.getKey()+"\t\n");
+//			}
+            bw.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }finally
+        {
+        	try {
+				bw.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+        }
+	}
+	
+	public static void generateTxt(Map<String,Long> map,String filename)
+	{
+//		FileWriter fw = null;
+		BufferedWriter bw = null;
+		try {
+			File file = new File("d:/compare/day/" + filename + ".txt");
+			if(file.exists()) file.delete();
+//			fw = new FileWriter(new File(path));
+//			BufferedWriter bw = new BufferedWriter(fw);
+			bw = new BufferedWriter(new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), "UTF-8")));
+			for(Map.Entry<String,Long> arr : map.entrySet()){
+	            bw.write(arr.getKey() + "||" + arr.getValue() + "\t\n");
 	        }
 //			for(Map.Entry<String, Integer> entry:Vmap.entrySet()){
 //				bw.write(entry.getKey()+"\t\n");
