@@ -336,6 +336,30 @@ public class PnameCompare {
 			}
 		}
 		
+		
+		public static void getInsideCount(String day,int rtype,int devid) throws SQLException {
+			DBCollection coll = conn.getCollection("biglog", "log_" + day);
+				BasicDBObject query = new BasicDBObject();
+				query.append("rtype", rtype);
+				query.append("clientMessage.slot_name", "8a7c1ad4efb64d72aeff83f0ebb063be");
+				query.append("clientMessage.format", "spot_inside");
+				logger.info("日期：{}。devid:{}，rtype:{}，数：{}",day,devid,rtype,coll.count(query));
+		}
+		
+		
+		public static void getInsideCount1(String day,int rtype,int devid) throws SQLException {
+			DBCollection coll = conn.getCollection("biglog", "log_" + day);
+				BasicDBObject query = new BasicDBObject();
+				query.append("rtype", rtype);
+//				query.append("clientMessage.slot_name", "15f08934700148dfa73888d0f03f3b78");
+				query.append("app.devId", devid);
+				query.append("feedback.s_type", 3);
+				logger.info("日期：{}。devid:{}，rtype:{}，数：{}",day,devid,rtype,coll.count(query));
+		}
+		
+		
+		
+		
 		public static void getSpotRequestCount(String day, String devid) throws SQLException {
 //			String[] pnames = {"com.morega.ldsg","com.morega.dxsgd","com.morega.wxpass","com.ylj.glint","com.fantasticdroid.flashaler","com.lt.lighting","com.morega.wifipass","com.morega.dxsgtx","com.morega.wifiup","com.morega.ldsgs","com.morega.wifibest","com.morega.dxsg","com.call.glint"};
 			List<String> pnames = getPname(day, devid);
@@ -913,7 +937,14 @@ public class PnameCompare {
 //			System.out.println("e197a95d9e2140b4ad2e67e98ce6413c: " + getSpotPname("20150201", "e197a95d9e2140b4ad2e67e98ce6413c"));
 //			System.out.println("b747fa48a8504a9c9593027f657796c6: " + getSpotPname("20150201", "b747fa48a8504a9c9593027f657796c6"));
 			
-			getCount("20150201");
+//			getCount("20150201");
+			getInsideCount("20150208",1,10092);
+			getInsideCount1("20150208",2,10092);
+			getInsideCount1("20150208",3,10092);
+			getInsideCount1("20150208",4,10092);
+			getInsideCount1("20150208",5,10092);
+			getInsideCount1("20150208",6,10092);
+			
 			
 //			System.out.println(parseDay("20141215"));
 		}
