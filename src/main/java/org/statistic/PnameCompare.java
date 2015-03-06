@@ -938,12 +938,12 @@ public class PnameCompare {
 //			System.out.println("b747fa48a8504a9c9593027f657796c6: " + getSpotPname("20150201", "b747fa48a8504a9c9593027f657796c6"));
 			
 //			getCount("20150201");
-			getInsideCount("20150208",1,10092);
-			getInsideCount1("20150208",2,10092);
-			getInsideCount1("20150208",3,10092);
-			getInsideCount1("20150208",4,10092);
-			getInsideCount1("20150208",5,10092);
-			getInsideCount1("20150208",6,10092);
+//			getInsideCount("20150208",1,10092);
+//			getInsideCount1("20150208",2,10092);
+//			getInsideCount1("20150208",3,10092);
+//			getInsideCount1("20150208",4,10092);
+//			getInsideCount1("20150208",5,10092);
+//			getInsideCount1("20150208",6,10092);
 			
 			
 //			System.out.println(parseDay("20141215"));

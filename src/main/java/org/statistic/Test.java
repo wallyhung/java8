@@ -168,6 +168,9 @@ public class Test {
 			System.out.println("----------------------");
 		}
 		
+		String s = "admintest";
+		System.out.println(s.hashCode());
+		
 		
 		
 	}
